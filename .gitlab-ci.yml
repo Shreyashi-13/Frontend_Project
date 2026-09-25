@@ -1,0 +1,26 @@
+# The application has no build step. Node is used only to run tests.
+image: node:22-alpine
+stages: [verify, deploy]
+
+verify-static-frontend:
+  stage: verify
+  script:
+    - node --check src/app.js
+    - node --check src/model.js
+    - node --check src/data.js
+    - node --test tests/*.test.js
+
+publish-obrix:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - mkdir -p dist/src dist/assets dist/public
+    - cp ./*.html dist/
+    - cp src/app.js src/data.js src/model.js src/styles.css dist/src/
+    - cp assets/*.svg dist/assets/
+    - cp public/favicon.svg dist/public/
+  pages:
+    publish: dist
+  artifacts:
+    paths: [dist/]
